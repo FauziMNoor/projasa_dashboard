@@ -6,73 +6,48 @@ import { DashboardLayout } from 'src/layouts/dashboard';
 
 import { LoadingScreen } from 'src/components/loading-screen';
 
-import { AccountLayout } from 'src/sections/account/account-layout';
-
 import { AuthGuard } from 'src/auth/guard';
 
 import { usePathname } from '../hooks';
 
 // ----------------------------------------------------------------------
-
-// Overview
+// Halaman Dashboard Utama
 const IndexPage = lazy(() => import('src/pages/dashboard'));
-const OverviewEcommercePage = lazy(() => import('src/pages/dashboard/ecommerce'));
-const OverviewAnalyticsPage = lazy(() => import('src/pages/dashboard/analytics'));
-const OverviewBankingPage = lazy(() => import('src/pages/dashboard/banking'));
-const OverviewBookingPage = lazy(() => import('src/pages/dashboard/booking'));
-const OverviewFilePage = lazy(() => import('src/pages/dashboard/file'));
-const OverviewCoursePage = lazy(() => import('src/pages/dashboard/course'));
-// Product
-const ProductDetailsPage = lazy(() => import('src/pages/dashboard/product/details'));
-const ProductListPage = lazy(() => import('src/pages/dashboard/product/list'));
-const ProductCreatePage = lazy(() => import('src/pages/dashboard/product/new'));
-const ProductEditPage = lazy(() => import('src/pages/dashboard/product/edit'));
-// Order
-const OrderListPage = lazy(() => import('src/pages/dashboard/order/list'));
-const OrderDetailsPage = lazy(() => import('src/pages/dashboard/order/details'));
-// Invoice
-const InvoiceListPage = lazy(() => import('src/pages/dashboard/invoice/list'));
-const InvoiceDetailsPage = lazy(() => import('src/pages/dashboard/invoice/details'));
-const InvoiceCreatePage = lazy(() => import('src/pages/dashboard/invoice/new'));
-const InvoiceEditPage = lazy(() => import('src/pages/dashboard/invoice/edit'));
-// User
-const UserProfilePage = lazy(() => import('src/pages/dashboard/user/profile'));
-const UserCardsPage = lazy(() => import('src/pages/dashboard/user/cards'));
-const UserListPage = lazy(() => import('src/pages/dashboard/user/list'));
-const UserCreatePage = lazy(() => import('src/pages/dashboard/user/new'));
-const UserEditPage = lazy(() => import('src/pages/dashboard/user/edit'));
-// Account
-const AccountGeneralPage = lazy(() => import('src/pages/dashboard/user/account/general'));
-const AccountBillingPage = lazy(() => import('src/pages/dashboard/user/account/billing'));
-const AccountSocialsPage = lazy(() => import('src/pages/dashboard/user/account/socials'));
-const AccountNotificationsPage = lazy(
-  () => import('src/pages/dashboard/user/account/notifications')
-);
-const AccountChangePasswordPage = lazy(
-  () => import('src/pages/dashboard/user/account/change-password')
-);
-// Blog
-const BlogPostsPage = lazy(() => import('src/pages/dashboard/post/list'));
-const BlogPostPage = lazy(() => import('src/pages/dashboard/post/details'));
-const BlogNewPostPage = lazy(() => import('src/pages/dashboard/post/new'));
-const BlogEditPostPage = lazy(() => import('src/pages/dashboard/post/edit'));
-// Job
-const JobDetailsPage = lazy(() => import('src/pages/dashboard/job/details'));
-const JobListPage = lazy(() => import('src/pages/dashboard/job/list'));
-const JobCreatePage = lazy(() => import('src/pages/dashboard/job/new'));
-const JobEditPage = lazy(() => import('src/pages/dashboard/job/edit'));
-// Tour
-const TourDetailsPage = lazy(() => import('src/pages/dashboard/tour/details'));
-const TourListPage = lazy(() => import('src/pages/dashboard/tour/list'));
-const TourCreatePage = lazy(() => import('src/pages/dashboard/tour/new'));
-const TourEditPage = lazy(() => import('src/pages/dashboard/tour/edit'));
-// File manager
-const FileManagerPage = lazy(() => import('src/pages/dashboard/file-manager'));
-// App
-const ChatPage = lazy(() => import('src/pages/dashboard/chat'));
-const MailPage = lazy(() => import('src/pages/dashboard/mail'));
-const CalendarPage = lazy(() => import('src/pages/dashboard/calendar'));
-const KanbanPage = lazy(() => import('src/pages/dashboard/kanban'));
+
+// Perusahaan
+const CompanyListPage   = lazy(() => import('src/pages/dashboard/companies/list'));
+const CompanyNewPage    = lazy(() => import('src/pages/dashboard/companies/new'));
+const CompanyEditPage   = lazy(() => import('src/pages/dashboard/companies/edit'));
+
+// Pengguna
+const UserListPage  = lazy(() => import('src/pages/dashboard/users/list'));
+const UserNewPage   = lazy(() => import('src/pages/dashboard/users/new'));
+const UserEditPage  = lazy(() => import('src/pages/dashboard/users/edit'));
+
+// Pelanggan
+const CustomerListPage = lazy(() => import('src/pages/dashboard/customers/list'));
+const CustomerNewPage  = lazy(() => import('src/pages/dashboard/customers/new'));
+const CustomerEditPage = lazy(() => import('src/pages/dashboard/customers/edit'));
+
+// Layanan
+const ServiceListPage = lazy(() => import('src/pages/dashboard/services/list'));
+const ServiceNewPage  = lazy(() => import('src/pages/dashboard/services/new'));
+const ServiceEditPage = lazy(() => import('src/pages/dashboard/services/edit'));
+
+// Portofolio
+const PortfolioListPage = lazy(() => import('src/pages/dashboard/portfolios/list'));
+const PortfolioNewPage  = lazy(() => import('src/pages/dashboard/portfolios/new'));
+const PortfolioEditPage = lazy(() => import('src/pages/dashboard/portfolios/edit'));
+
+// Pesanan
+const OrderListPage    = lazy(() => import('src/pages/dashboard/orders/list'));
+const OrderDetailsPage = lazy(() => import('src/pages/dashboard/orders/details'));
+const OrderNewPage     = lazy(() => import('src/pages/dashboard/orders/new'));
+const OrderEditPage    = lazy(() => import('src/pages/dashboard/orders/edit'));
+
+// Keuangan
+const FinancePage = lazy(() => import('src/pages/dashboard/finance'));
+
 // ----------------------------------------------------------------------
 
 function SuspenseOutlet() {
@@ -90,109 +65,83 @@ const dashboardLayout = () => (
   </DashboardLayout>
 );
 
-const accountLayout = () => (
-  <AccountLayout>
-    <SuspenseOutlet />
-  </AccountLayout>
-);
-
 export const dashboardRoutes = [
   {
     path: 'dashboard',
     element: CONFIG.auth.skip ? dashboardLayout() : <AuthGuard>{dashboardLayout()}</AuthGuard>,
     children: [
+      // Dashboard Utama
       { index: true, element: <IndexPage /> },
-      { path: 'ecommerce', element: <OverviewEcommercePage /> },
-      { path: 'analytics', element: <OverviewAnalyticsPage /> },
-      { path: 'banking', element: <OverviewBankingPage /> },
-      { path: 'booking', element: <OverviewBookingPage /> },
-      { path: 'file', element: <OverviewFilePage /> },
-      { path: 'course', element: <OverviewCoursePage /> },
+
+      // Data Perusahaan
       {
-        path: 'user',
+        path: 'companies',
         children: [
-          { index: true, element: <UserProfilePage /> },
-          { path: 'profile', element: <UserProfilePage /> },
-          { path: 'cards', element: <UserCardsPage /> },
-          { path: 'list', element: <UserListPage /> },
-          { path: 'new', element: <UserCreatePage /> },
+          { index: true,          element: <CompanyListPage /> },
+          { path: 'list',         element: <CompanyListPage /> },
+          { path: 'new',          element: <CompanyNewPage /> },
+          { path: ':id/edit',     element: <CompanyEditPage /> },
+        ],
+      },
+
+      // Pengguna Sistem
+      {
+        path: 'users',
+        children: [
+          { index: true,      element: <UserListPage /> },
+          { path: 'list',     element: <UserListPage /> },
+          { path: 'new',      element: <UserNewPage /> },
           { path: ':id/edit', element: <UserEditPage /> },
-          {
-            path: 'account',
-            element: accountLayout(),
-            children: [
-              { index: true, element: <AccountGeneralPage /> },
-              { path: 'billing', element: <AccountBillingPage /> },
-              { path: 'notifications', element: <AccountNotificationsPage /> },
-              { path: 'socials', element: <AccountSocialsPage /> },
-              { path: 'change-password', element: <AccountChangePasswordPage /> },
-            ],
-          },
         ],
       },
+
+      // Data Pelanggan
       {
-        path: 'product',
+        path: 'customers',
         children: [
-          { index: true, element: <ProductListPage /> },
-          { path: 'list', element: <ProductListPage /> },
-          { path: ':id', element: <ProductDetailsPage /> },
-          { path: 'new', element: <ProductCreatePage /> },
-          { path: ':id/edit', element: <ProductEditPage /> },
+          { index: true,      element: <CustomerListPage /> },
+          { path: 'list',     element: <CustomerListPage /> },
+          { path: 'new',      element: <CustomerNewPage /> },
+          { path: ':id/edit', element: <CustomerEditPage /> },
         ],
       },
+
+      // Layanan Jasa
       {
-        path: 'order',
+        path: 'services',
         children: [
-          { index: true, element: <OrderListPage /> },
-          { path: 'list', element: <OrderListPage /> },
-          { path: ':id', element: <OrderDetailsPage /> },
+          { index: true,      element: <ServiceListPage /> },
+          { path: 'list',     element: <ServiceListPage /> },
+          { path: 'new',      element: <ServiceNewPage /> },
+          { path: ':id/edit', element: <ServiceEditPage /> },
         ],
       },
+
+      // Galeri Portofolio
       {
-        path: 'invoice',
+        path: 'portfolios',
         children: [
-          { index: true, element: <InvoiceListPage /> },
-          { path: 'list', element: <InvoiceListPage /> },
-          { path: ':id', element: <InvoiceDetailsPage /> },
-          { path: ':id/edit', element: <InvoiceEditPage /> },
-          { path: 'new', element: <InvoiceCreatePage /> },
+          { index: true,      element: <PortfolioListPage /> },
+          { path: 'list',     element: <PortfolioListPage /> },
+          { path: 'new',      element: <PortfolioNewPage /> },
+          { path: ':id/edit', element: <PortfolioEditPage /> },
         ],
       },
+
+      // Pesanan Masuk (CORE)
       {
-        path: 'post',
+        path: 'orders',
         children: [
-          { index: true, element: <BlogPostsPage /> },
-          { path: 'list', element: <BlogPostsPage /> },
-          { path: ':title', element: <BlogPostPage /> },
-          { path: ':title/edit', element: <BlogEditPostPage /> },
-          { path: 'new', element: <BlogNewPostPage /> },
+          { index: true,       element: <OrderListPage /> },
+          { path: 'list',      element: <OrderListPage /> },
+          { path: 'new',       element: <OrderNewPage /> },
+          { path: ':id',       element: <OrderDetailsPage /> },
+          { path: ':id/edit',  element: <OrderEditPage /> },
         ],
       },
-      {
-        path: 'job',
-        children: [
-          { index: true, element: <JobListPage /> },
-          { path: 'list', element: <JobListPage /> },
-          { path: ':id', element: <JobDetailsPage /> },
-          { path: 'new', element: <JobCreatePage /> },
-          { path: ':id/edit', element: <JobEditPage /> },
-        ],
-      },
-      {
-        path: 'tour',
-        children: [
-          { index: true, element: <TourListPage /> },
-          { path: 'list', element: <TourListPage /> },
-          { path: ':id', element: <TourDetailsPage /> },
-          { path: 'new', element: <TourCreatePage /> },
-          { path: ':id/edit', element: <TourEditPage /> },
-        ],
-      },
-      { path: 'file-manager', element: <FileManagerPage /> },
-      { path: 'mail', element: <MailPage /> },
-      { path: 'chat', element: <ChatPage /> },
-      { path: 'calendar', element: <CalendarPage /> },
-      { path: 'kanban', element: <KanbanPage /> },
+
+      // Laporan Keuangan
+      { path: 'finance', element: <FinancePage /> },
     ],
   },
 ];

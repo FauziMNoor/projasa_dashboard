@@ -1,202 +1,324 @@
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import TableRow from '@mui/material/TableRow';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
 import { useTheme } from '@mui/material/styles';
+import CardHeader from '@mui/material/CardHeader';
+import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
+import TableContainer from '@mui/material/TableContainer';
+
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
+
+import { fDate } from 'src/utils/format-time';
+import { fCurrency } from 'src/utils/format-number';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { SeoIllustration } from 'src/assets/illustrations';
-import { _appAuthors, _appRelated, _appFeatured, _appInvoices, _appInstalled } from 'src/_mock';
+import {
+  getDashboardStats,
+  getOrdersEnriched,
+  ORDER_STATUS_COLORS,
+  ORDER_STATUS_LABELS,
+} from 'src/_mock/_projasa';
 
-import { svgColorClasses } from 'src/components/svg-color';
+import { Label } from 'src/components/label';
+import { Iconify } from 'src/components/iconify';
+import { Chart, useChart } from 'src/components/chart';
 
 import { useMockedUser } from 'src/auth/hooks';
 
-import { AppWidget } from '../app-widget';
-import { AppWelcome } from '../app-welcome';
-import { AppFeatured } from '../app-featured';
-import { AppNewInvoice } from '../app-new-invoice';
-import { AppTopAuthors } from '../app-top-authors';
-import { AppTopRelated } from '../app-top-related';
-import { AppAreaInstalled } from '../app-area-installed';
-import { AppWidgetSummary } from '../app-widget-summary';
-import { AppCurrentDownload } from '../app-current-download';
-import { AppTopInstalledCountries } from '../app-top-installed-countries';
+// ----------------------------------------------------------------------
+
+const QUICK_ACTIONS = [
+  { label: 'Buat Pesanan',       icon: 'solar:add-circle-bold',          color: 'primary',   path: paths.dashboard.orders.new },
+  { label: 'Tambah Pelanggan',   icon: 'solar:user-plus-bold',           color: 'success',   path: paths.dashboard.customers.new },
+  { label: 'Tambah Layanan',     icon: 'solar:settings-bold',            color: 'secondary', path: paths.dashboard.services.new },
+  { label: 'Laporan Keuangan',   icon: 'solar:chart-2-bold',             color: 'warning',   path: paths.dashboard.finance.root },
+  { label: 'Tambah Portofolio',  icon: 'solar:gallery-wide-bold',        color: 'info',      path: paths.dashboard.portfolios.new },
+  { label: 'Kelola Pengguna',    icon: 'solar:users-group-rounded-bold', color: 'error',     path: paths.dashboard.users.list },
+];
+
+// ----------------------------------------------------------------------
+
+function StatCard({ title, value, icon, color = 'primary', subtitle }) {
+  return (
+    <Card>
+      <CardContent>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              {title}
+            </Typography>
+            <Typography variant="h4">{value}</Typography>
+            {subtitle && (
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                {subtitle}
+              </Typography>
+            )}
+          </Box>
+          <Box
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: `${color}.lighter`,
+              color: `${color}.main`,
+            }}
+          >
+            <Iconify icon={icon} width={28} />
+          </Box>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ----------------------------------------------------------------------
+
+function RecentOrdersTable({ orders }) {
+  return (
+    <Card>
+      <CardHeader
+        title="Permintaan Terbaru"
+        subheader="5 pesanan masuk terakhir"
+        action={
+          <Button
+            component={RouterLink}
+            href={paths.dashboard.orders.list}
+            size="small"
+            endIcon={<Iconify icon="solar:arrow-right-linear" />}
+          >
+            Lihat Semua
+          </Button>
+        }
+      />
+
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>No. Registrasi</TableCell>
+              <TableCell>Pelanggan</TableCell>
+              <TableCell>Layanan</TableCell>
+              <TableCell>Tanggal</TableCell>
+              <TableCell align="center">Status</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {orders.slice(0, 5).map((order) => (
+              <TableRow key={order.id} hover>
+                <TableCell>
+                  <Typography
+                    component={RouterLink}
+                    href={paths.dashboard.orders.details(order.id)}
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      color: 'primary.main',
+                      textDecoration: 'none',
+                      fontFamily: 'monospace',
+                    }}
+                  >
+                    {order.nomor_registrasi}
+                  </Typography>
+                </TableCell>
+                <TableCell>{order.customer?.nama ?? '-'}</TableCell>
+                <TableCell sx={{ color: 'text.secondary' }}>
+                  {order.service?.nama_layanan ?? '-'}
+                </TableCell>
+                <TableCell sx={{ color: 'text.secondary' }}>{fDate(order.created_at)}</TableCell>
+                <TableCell align="center">
+                  <Label color={ORDER_STATUS_COLORS[order.status]}>
+                    {ORDER_STATUS_LABELS[order.status]}
+                  </Label>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Card>
+  );
+}
+
+// ----------------------------------------------------------------------
+
+function QuickActionsCard() {
+  return (
+    <Card>
+      <CardHeader title="Aksi Cepat" subheader="Pintasan menu yang sering digunakan" />
+      <CardContent>
+        <Grid container spacing={2}>
+          {QUICK_ACTIONS.map((action) => (
+            <Grid key={action.label} size={{ xs: 6, sm: 4 }}>
+              <Button
+                component={RouterLink}
+                href={action.path}
+                fullWidth
+                variant="outlined"
+                color={action.color}
+                startIcon={<Iconify icon={action.icon} />}
+                sx={{ justifyContent: 'flex-start', py: 1.5 }}
+              >
+                {action.label}
+              </Button>
+            </Grid>
+          ))}
+        </Grid>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ----------------------------------------------------------------------
+
+function OrderStatusSummary({ stats }) {
+  const theme = useTheme();
+
+  const chartOptions = useChart({
+    chart: { sparkline: { enabled: true } },
+    labels: ['Pending', 'Sedang Proses', 'Selesai'],
+    colors: [theme.palette.warning.main, theme.palette.primary.main, theme.palette.success.main],
+    stroke: { width: 0 },
+    tooltip: { y: { formatter: (v) => `${v} pesanan` } },
+    plotOptions: { pie: { donut: { size: '70%' } } },
+  });
+
+  return (
+    <Card>
+      <CardHeader title="Status Pesanan" subheader="Distribusi status saat ini" />
+      <CardContent>
+        <Chart
+          type="donut"
+          series={[stats.pendingOrders, stats.processingOrders, stats.finishedOrders]}
+          options={chartOptions}
+          sx={{ height: 200 }}
+        />
+
+        <Stack spacing={1} sx={{ mt: 2 }}>
+          {[
+            { label: 'Pending',       count: stats.pendingOrders,    color: 'warning' },
+            { label: 'Sedang Proses', count: stats.processingOrders, color: 'primary' },
+            { label: 'Selesai',       count: stats.finishedOrders,   color: 'success' },
+          ].map((item) => (
+            <Stack key={item.label} direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Box
+                  sx={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    bgcolor: `${item.color}.main`,
+                  }}
+                />
+                <Typography variant="body2">{item.label}</Typography>
+              </Stack>
+              <Label color={item.color}>{item.count}</Label>
+            </Stack>
+          ))}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
 
 // ----------------------------------------------------------------------
 
 export function OverviewAppView() {
   const { user } = useMockedUser();
 
-  const theme = useTheme();
+  const stats = getDashboardStats();
+  const enrichedOrders = getOrdersEnriched();
 
   return (
     <DashboardContent maxWidth="xl">
+      {/* ── Header Sambutan ── */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Box>
+          <Typography variant="h4">
+            Selamat datang kembali 👋, {user?.displayName ?? 'Admin'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Dashboard PROJASA — pantau semua aktivitas operasional Anda di sini.
+          </Typography>
+        </Box>
+
+        <Button
+          component={RouterLink}
+          href={paths.dashboard.orders.new}
+          variant="contained"
+          startIcon={<Iconify icon="solar:add-circle-bold" />}
+        >
+          Buat Pesanan Baru
+        </Button>
+      </Stack>
+
       <Grid container spacing={3}>
+        {/* ── Summary Cards ── */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCard
+            title="Total Pesanan"
+            value={stats.totalOrders}
+            icon="solar:clipboard-list-bold"
+            color="primary"
+            subtitle="Seluruh waktu"
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCard
+            title="Menunggu"
+            value={stats.pendingOrders}
+            icon="solar:clock-circle-bold"
+            color="warning"
+            subtitle="Perlu ditindaklanjuti"
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCard
+            title="Pemasukan Bulan Ini"
+            value={fCurrency(stats.incomeThisMonth)}
+            icon="solar:wallet-money-bold"
+            color="success"
+            subtitle="Bulan berjalan"
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCard
+            title="Pengeluaran Bulan Ini"
+            value={fCurrency(stats.expenseThisMonth)}
+            icon="solar:card-send-bold"
+            color="error"
+            subtitle="Bulan berjalan"
+          />
+        </Grid>
+
+        {/* ── Tabel Pesanan Terbaru ── */}
         <Grid size={{ xs: 12, md: 8 }}>
-          <AppWelcome
-            title={`Welcome back 👋 \n ${user?.displayName}`}
-            description="If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything."
-            img={<SeoIllustration hideBackground />}
-            action={
-              <Button variant="contained" color="primary">
-                Go now
-              </Button>
-            }
-          />
+          <RecentOrdersTable orders={enrichedOrders} />
         </Grid>
 
+        {/* ── Status Donut Chart ── */}
         <Grid size={{ xs: 12, md: 4 }}>
-          <AppFeatured list={_appFeatured} />
+          <OrderStatusSummary stats={stats} />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
-          <AppWidgetSummary
-            title="Total active users"
-            percent={2.6}
-            total={18765}
-            chart={{
-              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-              series: [15, 18, 12, 51, 68, 11, 39, 37],
-            }}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          <AppWidgetSummary
-            title="Total installed"
-            percent={0.2}
-            total={4876}
-            chart={{
-              colors: [theme.palette.info.main],
-              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-              series: [20, 41, 63, 33, 28, 35, 50, 46],
-            }}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          <AppWidgetSummary
-            title="Total downloads"
-            percent={-0.1}
-            total={678}
-            chart={{
-              colors: [theme.palette.error.main],
-              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-              series: [18, 19, 31, 8, 16, 37, 12, 33],
-            }}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <AppCurrentDownload
-            title="Current download"
-            subheader="Downloaded by operating system"
-            chart={{
-              series: [
-                { label: 'Mac', value: 12244 },
-                { label: 'Window', value: 53345 },
-                { label: 'iOS', value: 44313 },
-                { label: 'Android', value: 78343 },
-              ],
-            }}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6, lg: 8 }}>
-          <AppAreaInstalled
-            title="Area installed"
-            subheader="(+43%) than last year"
-            chart={{
-              categories: [
-                'Jan',
-                'Feb',
-                'Mar',
-                'Apr',
-                'May',
-                'Jun',
-                'Jul',
-                'Aug',
-                'Sep',
-                'Oct',
-                'Nov',
-                'Dec',
-              ],
-              series: [
-                {
-                  name: '2022',
-                  data: [
-                    { name: 'Asia', data: [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16] },
-                    { name: 'Europe', data: [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16] },
-                    { name: 'Americas', data: [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16] },
-                  ],
-                },
-                {
-                  name: '2023',
-                  data: [
-                    { name: 'Asia', data: [6, 18, 14, 9, 20, 6, 22, 19, 8, 22, 8, 17] },
-                    { name: 'Europe', data: [6, 18, 14, 9, 20, 6, 22, 19, 8, 22, 8, 17] },
-                    { name: 'Americas', data: [6, 18, 14, 9, 20, 6, 22, 19, 8, 22, 8, 17] },
-                  ],
-                },
-                {
-                  name: '2024',
-                  data: [
-                    { name: 'Asia', data: [6, 20, 15, 18, 7, 24, 6, 10, 12, 17, 18, 10] },
-                    { name: 'Europe', data: [6, 20, 15, 18, 7, 24, 6, 10, 12, 17, 18, 10] },
-                    { name: 'Americas', data: [6, 20, 15, 18, 7, 24, 6, 10, 12, 17, 18, 10] },
-                  ],
-                },
-              ],
-            }}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, lg: 8 }}>
-          <AppNewInvoice
-            title="New invoice"
-            tableData={_appInvoices}
-            headCells={[
-              { id: 'id', label: 'Invoice ID' },
-              { id: 'category', label: 'Category' },
-              { id: 'price', label: 'Price' },
-              { id: 'status', label: 'Status' },
-              { id: '' },
-            ]}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <AppTopRelated title="Related applications" list={_appRelated} />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <AppTopInstalledCountries title="Top installed countries" list={_appInstalled} />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <AppTopAuthors title="Top authors" list={_appAuthors} />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <Box sx={{ gap: 3, display: 'flex', flexDirection: 'column' }}>
-            <AppWidget
-              title="Conversion"
-              total={38566}
-              icon="solar:user-rounded-bold"
-              chart={{ series: 48 }}
-            />
-
-            <AppWidget
-              title="Applications"
-              total={55566}
-              icon="solar:letter-bold"
-              chart={{
-                series: 75,
-                colors: [theme.vars.palette.info.light, theme.vars.palette.info.main],
-              }}
-              sx={{ bgcolor: 'info.dark', [`& .${svgColorClasses.root}`]: { color: 'info.light' } }}
-            />
-          </Box>
+        {/* ── Quick Actions ── */}
+        <Grid size={{ xs: 12 }}>
+          <QuickActionsCard />
         </Grid>
       </Grid>
     </DashboardContent>

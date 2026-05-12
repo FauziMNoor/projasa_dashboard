@@ -2,8 +2,6 @@ import { paths } from 'src/routes/paths';
 
 import { CONFIG } from 'src/global-config';
 
-import { Label } from 'src/components/label';
-import { Iconify } from 'src/components/iconify';
 import { SvgColor } from 'src/components/svg-color';
 
 // ----------------------------------------------------------------------
@@ -11,164 +9,107 @@ import { SvgColor } from 'src/components/svg-color';
 const icon = (name) => <SvgColor src={`${CONFIG.assetsDir}/assets/icons/navbar/${name}.svg`} />;
 
 const ICONS = {
-  job: icon('ic-job'),
-  blog: icon('ic-blog'),
-  chat: icon('ic-chat'),
-  mail: icon('ic-mail'),
-  user: icon('ic-user'),
-  file: icon('ic-file'),
-  lock: icon('ic-lock'),
-  tour: icon('ic-tour'),
-  order: icon('ic-order'),
-  label: icon('ic-label'),
-  blank: icon('ic-blank'),
-  kanban: icon('ic-kanban'),
-  folder: icon('ic-folder'),
-  course: icon('ic-course'),
-  banking: icon('ic-banking'),
-  booking: icon('ic-booking'),
-  invoice: icon('ic-invoice'),
-  product: icon('ic-product'),
-  calendar: icon('ic-calendar'),
-  disabled: icon('ic-disabled'),
-  external: icon('ic-external'),
-  menuItem: icon('ic-menu-item'),
-  ecommerce: icon('ic-ecommerce'),
-  analytics: icon('ic-analytics'),
   dashboard: icon('ic-dashboard'),
-  parameter: icon('ic-parameter'),
+  company:   icon('ic-banking'),
+  user:      icon('ic-user'),
+  customer:  icon('ic-label'),
+  service:   icon('ic-course'),
+  portfolio: icon('ic-tour'),
+  order:     icon('ic-order'),
+  finance:   icon('ic-invoice'),
 };
 
 // ----------------------------------------------------------------------
 
 /**
- * Input nav data is an array of navigation section items used to define the structure and content of a navigation bar.
- * Each section contains a subheader and an array of items, which can include nested children items.
+ * Navigasi dashboard PROJASA
  *
- * Each item can have the following properties:
- * - `title`: The title of the navigation item.
- * - `path`: The URL path the item links to.
- * - `icon`: An optional icon component to display alongside the title.
- * - `info`: Optional additional information to display, such as a label.
- * - `allowedRoles`: An optional array of roles that are allowed to see the item.
- * - `caption`: An optional caption to display below the title.
- * - `children`: An optional array of nested navigation items.
- * - `disabled`: An optional boolean to disable the item.
+ * Setiap item dapat memiliki:
+ * - `title`        : Label menu
+ * - `path`         : URL tujuan
+ * - `icon`         : Ikon komponen
+ * - `allowedRoles` : Array role yang boleh melihat item ini
+ * - `children`     : Sub-menu
  */
 export const navData = [
-  /**
-   * Overview
-   */
+  // ─── ADMIN AREA ───────────────────────────────────────────────────────
   {
-    subheader: 'Overview',
-    items: [
-      { title: 'App', path: paths.dashboard.root, icon: ICONS.dashboard },
-      // { title: 'Ecommerce', path: paths.dashboard.general.ecommerce, icon: ICONS.ecommerce },
-      // { title: 'Analytics', path: paths.dashboard.general.analytics, icon: ICONS.analytics },
-      // { title: 'Banking', path: paths.dashboard.general.banking, icon: ICONS.banking },
-      // { title: 'Booking', path: paths.dashboard.general.booking, icon: ICONS.booking },
-      // { title: 'File', path: paths.dashboard.general.file, icon: ICONS.file },
-      // { title: 'Course', path: paths.dashboard.general.course, icon: ICONS.course },
-    ],
-  },
-  /**
-   * Management
-   */
-  {
-    subheader: 'Management',
+    subheader: 'Admin Area',
     items: [
       {
-        title: 'User',
-        path: paths.dashboard.user.root,
-        icon: ICONS.user,
-        children: [
-          { title: 'Profile', path: paths.dashboard.user.root },
-          { title: 'Cards', path: paths.dashboard.user.cards },
-          { title: 'List', path: paths.dashboard.user.list },
-          { title: 'Create', path: paths.dashboard.user.new },
-          { title: 'Edit', path: paths.dashboard.user.demo.edit },
-          { title: 'Account', path: paths.dashboard.user.account },
-        ],
+        title: 'Dasbor Utama',
+        path: paths.dashboard.root,
+        icon: ICONS.dashboard,
       },
       {
-        title: 'Product',
-        path: paths.dashboard.product.root,
-        icon: ICONS.product,
-        children: [
-          { title: 'List', path: paths.dashboard.product.root },
-          { title: 'Details', path: paths.dashboard.product.demo.details },
-          { title: 'Create', path: paths.dashboard.product.new },
-          { title: 'Edit', path: paths.dashboard.product.demo.edit },
-        ],
+        title: 'Data Perusahaan',
+        path: paths.dashboard.companies.root,
+        icon: ICONS.company,
       },
-      {
-        title: 'Order',
-        path: paths.dashboard.order.root,
-        icon: ICONS.order,
-        children: [
-          { title: 'List', path: paths.dashboard.order.root },
-          { title: 'Details', path: paths.dashboard.order.demo.details },
-        ],
-      },
-      {
-        title: 'Invoice',
-        path: paths.dashboard.invoice.root,
-        icon: ICONS.invoice,
-        children: [
-          { title: 'List', path: paths.dashboard.invoice.root },
-          { title: 'Details', path: paths.dashboard.invoice.demo.details },
-          { title: 'Create', path: paths.dashboard.invoice.new },
-          { title: 'Edit', path: paths.dashboard.invoice.demo.edit },
-        ],
-      },
-      {
-        title: 'Blog',
-        path: paths.dashboard.post.root,
-        icon: ICONS.blog,
-        children: [
-          { title: 'List', path: paths.dashboard.post.root },
-          { title: 'Details', path: paths.dashboard.post.demo.details },
-          { title: 'Create', path: paths.dashboard.post.new },
-          { title: 'Edit', path: paths.dashboard.post.demo.edit },
-        ],
-      },
-      {
-        title: 'Job',
-        path: paths.dashboard.job.root,
-        icon: ICONS.job,
-        children: [
-          { title: 'List', path: paths.dashboard.job.root },
-          { title: 'Details', path: paths.dashboard.job.demo.details },
-          { title: 'Create', path: paths.dashboard.job.new },
-          { title: 'Edit', path: paths.dashboard.job.demo.edit },
-        ],
-      },
-      {
-        title: 'Tour',
-        path: paths.dashboard.tour.root,
-        icon: ICONS.tour,
-        children: [
-          { title: 'List', path: paths.dashboard.tour.root },
-          { title: 'Details', path: paths.dashboard.tour.demo.details },
-          { title: 'Create', path: paths.dashboard.tour.new },
-          { title: 'Edit', path: paths.dashboard.tour.demo.edit },
-        ],
-      },
-      { title: 'File manager', path: paths.dashboard.fileManager, icon: ICONS.folder },
-      {
-        title: 'Mail',
-        path: paths.dashboard.mail,
-        icon: ICONS.mail,
-        info: (
-          <Label color="error" variant="inverted">
-            +32
-          </Label>
-        ),
-      },
-      { title: 'Chat', path: paths.dashboard.chat, icon: ICONS.chat },
-      { title: 'Calendar', path: paths.dashboard.calendar, icon: ICONS.calendar },
-      { title: 'Kanban', path: paths.dashboard.kanban, icon: ICONS.kanban },
     ],
   },
 
+  // ─── MANAJEMEN DATA ───────────────────────────────────────────────────
+  {
+    subheader: 'Manajemen Data',
+    items: [
+      {
+        title: 'Pengguna Sistem',
+        path: paths.dashboard.users.root,
+        icon: ICONS.user,
+        children: [
+          { title: 'Daftar Pengguna', path: paths.dashboard.users.list },
+          { title: 'Tambah Pengguna', path: paths.dashboard.users.new },
+        ],
+      },
+      {
+        title: 'Data Pelanggan',
+        path: paths.dashboard.customers.root,
+        icon: ICONS.customer,
+        children: [
+          { title: 'Daftar Pelanggan', path: paths.dashboard.customers.list },
+          { title: 'Tambah Pelanggan', path: paths.dashboard.customers.new },
+        ],
+      },
+      {
+        title: 'Layanan Jasa',
+        path: paths.dashboard.services.root,
+        icon: ICONS.service,
+        children: [
+          { title: 'Daftar Layanan', path: paths.dashboard.services.list },
+          { title: 'Tambah Layanan', path: paths.dashboard.services.new },
+        ],
+      },
+      {
+        title: 'Galeri Portofolio',
+        path: paths.dashboard.portfolios.root,
+        icon: ICONS.portfolio,
+        children: [
+          { title: 'Semua Proyek', path: paths.dashboard.portfolios.list },
+          { title: 'Tambah Proyek', path: paths.dashboard.portfolios.new },
+        ],
+      },
+    ],
+  },
+
+  // ─── OPERASIONAL ──────────────────────────────────────────────────────
+  {
+    subheader: 'Operasional',
+    items: [
+      {
+        title: 'Pesanan Masuk',
+        path: paths.dashboard.orders.root,
+        icon: ICONS.order,
+        children: [
+          { title: 'Semua Pesanan', path: paths.dashboard.orders.list },
+          { title: 'Buat Pesanan',  path: paths.dashboard.orders.new },
+        ],
+      },
+      {
+        title: 'Laporan Keuangan',
+        path: paths.dashboard.finance.root,
+        icon: ICONS.finance,
+      },
+    ],
+  },
 ];

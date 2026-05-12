@@ -16,7 +16,7 @@ import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { USER_ROLES, getUsersEnriched } from 'src/_mock/_projasa';
+import { _services, CATEGORY_COLORS, SERVICE_CATEGORIES } from 'src/_mock/_projasa';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
@@ -36,37 +36,35 @@ import {
   TablePaginationCustom,
 } from 'src/components/table';
 
-import { UserTableRow } from '../user-table-row';
-import { UserTableToolbar } from '../user-table-toolbar';
-import { UserTableFiltersResult } from '../user-table-filters-result';
+import { ServiceTableRow } from '../service-table-row';
+import { ServiceTableToolbar } from '../service-table-toolbar';
 
 // ----------------------------------------------------------------------
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All' },
-  { value: 'active', label: 'Active' },
-  { value: 'banned', label: 'Inactive' },
+const CATEGORY_OPTIONS = [
+  { value: 'all', label: 'Semua' },
+  ...SERVICE_CATEGORIES.map((c) => ({ value: c, label: c })),
 ];
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Name' },
-  { id: 'phone', label: 'Phone number', width: 180 },
-  { id: 'company', label: 'Company', width: 220 },
-  { id: 'role_title', label: 'Role', width: 180 },
-  { id: 'status', label: 'Status', width: 100 },
-  { id: '', width: 88 },
+  { id: 'nama_layanan', label: 'Nama Layanan' },
+  { id: 'kategori', label: 'Kategori', width: 140 },
+  { id: 'company', label: 'Perusahaan', width: 220 },
+  { id: 'estimasi_durasi', label: 'Estimasi', width: 120 },
+  { id: 'harga', label: 'Harga', width: 140 },
+  { id: '', width: 60 },
 ];
 
 // ----------------------------------------------------------------------
 
-export function UserListView() {
-  const table = useTable();
+export function ServiceListView() {
+  const table = useTable({ defaultOrderBy: 'nama_layanan' });
 
   const confirmDialog = useBoolean();
 
-  const [tableData, setTableData] = useState(getUsersEnriched());
+  const [tableData, setTableData] = useState(_services);
 
-  const filters = useSetState({ name: '', role: [], status: 'all' });
+  const filters = useSetState({ name: '', kategori: 'all' });
   const { state: currentFilters, setState: updateFilters } = filters;
 
   const dataFiltered = applyFilter({
@@ -77,19 +75,15 @@ export function UserListView() {
 
   const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
 
-  const canReset =
-    !!currentFilters.name || currentFilters.role.length > 0 || currentFilters.status !== 'all';
+  const canReset = !!currentFilters.name || currentFilters.kategori !== 'all';
 
   const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
 
   const handleDeleteRow = useCallback(
     (id) => {
       const deleteRow = tableData.filter((row) => row.id !== id);
-
       toast.success('Hapus berhasil!');
-
       setTableData(deleteRow);
-
       table.onUpdatePageDeleteRow(dataInPage.length);
     },
     [dataInPage.length, table, tableData]
@@ -97,18 +91,15 @@ export function UserListView() {
 
   const handleDeleteRows = useCallback(() => {
     const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
-
     toast.success('Hapus berhasil!');
-
     setTableData(deleteRows);
-
     table.onUpdatePageDeleteRows(dataInPage.length, dataFiltered.length);
   }, [dataFiltered.length, dataInPage.length, table, tableData]);
 
-  const handleFilterStatus = useCallback(
+  const handleFilterKategori = useCallback(
     (event, newValue) => {
       table.onResetPage();
-      updateFilters({ status: newValue });
+      updateFilters({ kategori: newValue });
     },
     [updateFilters, table]
   );
@@ -120,7 +111,7 @@ export function UserListView() {
       title="Hapus"
       content={
         <>
-          Apakah Anda yakin ingin menghapus <strong> {table.selected.length} </strong> pengguna?
+          Apakah Anda yakin ingin menghapus <strong>{table.selected.length}</strong> layanan?
         </>
       }
       action={
@@ -142,20 +133,20 @@ export function UserListView() {
     <>
       <DashboardContent>
         <CustomBreadcrumbs
-          heading="Pengguna Sistem"
+          heading="Layanan Jasa"
           links={[
             { name: 'Dashboard', href: paths.dashboard.root },
-            { name: 'User', href: paths.dashboard.users.root },
+            { name: 'Layanan', href: paths.dashboard.services.root },
             { name: 'Daftar' },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.dashboard.users.new}
+              href={paths.dashboard.services.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              Tambah Pengguna Baru
+              Tambah Layanan Baru
             </Button>
           }
           sx={{ mb: { xs: 3, md: 5 } }}
@@ -163,8 +154,8 @@ export function UserListView() {
 
         <Card>
           <Tabs
-            value={currentFilters.status}
-            onChange={handleFilterStatus}
+            value={currentFilters.kategori}
+            onChange={handleFilterKategori}
             sx={[
               (theme) => ({
                 px: 2.5,
@@ -172,7 +163,7 @@ export function UserListView() {
               }),
             ]}
           >
-            {STATUS_OPTIONS.map((tab) => (
+            {CATEGORY_OPTIONS.map((tab) => (
               <Tab
                 key={tab.value}
                 iconPosition="end"
@@ -181,38 +172,21 @@ export function UserListView() {
                 icon={
                   <Label
                     variant={
-                      ((tab.value === 'all' || tab.value === currentFilters.status) && 'filled') ||
+                      ((tab.value === 'all' || tab.value === currentFilters.kategori) && 'filled') ||
                       'soft'
                     }
-                    color={
-                      (tab.value === 'active' && 'success') ||
-                      (tab.value === 'banned' && 'error') ||
-                      'default'
-                    }
+                    color={CATEGORY_COLORS[tab.value] || 'default'}
                   >
                     {tab.value === 'all'
                       ? tableData.length
-                      : tableData.filter((user) => user.status === tab.value).length}
+                      : tableData.filter((s) => s.kategori === tab.value).length}
                   </Label>
                 }
               />
             ))}
           </Tabs>
 
-          <UserTableToolbar
-            filters={filters}
-            onResetPage={table.onResetPage}
-            options={{ roles: USER_ROLES }}
-          />
-
-          {canReset && (
-            <UserTableFiltersResult
-              filters={filters}
-              totalResults={dataFiltered.length}
-              onResetPage={table.onResetPage}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
+          <ServiceTableToolbar filters={filters} onResetPage={table.onResetPage} />
 
           <Box sx={{ position: 'relative' }}>
             <TableSelectedAction
@@ -226,7 +200,7 @@ export function UserListView() {
                 )
               }
               action={
-                <Tooltip title="Delete">
+                <Tooltip title="Hapus">
                   <IconButton color="primary" onClick={confirmDialog.onTrue}>
                     <Iconify icon="solar:trash-bin-trash-bold" />
                   </IconButton>
@@ -258,13 +232,12 @@ export function UserListView() {
                       table.page * table.rowsPerPage + table.rowsPerPage
                     )
                     .map((row) => (
-                      <UserTableRow
+                      <ServiceTableRow
                         key={row.id}
                         row={row}
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
                         onDeleteRow={() => handleDeleteRow(row.id)}
-                        editHref={paths.dashboard.users.edit(row.id)}
                       />
                     ))}
 
@@ -299,7 +272,7 @@ export function UserListView() {
 // ----------------------------------------------------------------------
 
 function applyFilter({ inputData, comparator, filters }) {
-  const { name, status, role } = filters;
+  const { name, kategori } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index]);
 
@@ -312,21 +285,16 @@ function applyFilter({ inputData, comparator, filters }) {
   inputData = stabilizedThis.map((el) => el[0]);
 
   if (name) {
-    inputData = inputData.filter(
-      (user) => 
-        user.name.toLowerCase().includes(name.toLowerCase()) || 
-        user.email.toLowerCase().includes(name.toLowerCase())
+    inputData = inputData.filter((service) =>
+      [service.nama_layanan, service.kategori, service.deskripsi].some((field) =>
+        field?.toLowerCase().includes(name.toLowerCase())
+      )
     );
   }
 
-  if (status !== 'all') {
-    inputData = inputData.filter((user) => user.status === status);
-  }
-
-  if (role.length) {
-    inputData = inputData.filter((user) => role.includes(user.role_title));
+  if (kategori !== 'all') {
+    inputData = inputData.filter((service) => service.kategori === kategori);
   }
 
   return inputData;
 }
-

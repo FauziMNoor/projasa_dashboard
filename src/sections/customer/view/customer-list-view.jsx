@@ -1,10 +1,7 @@
 import { useState, useCallback } from 'react';
-import { varAlpha } from 'minimal-shared/utils';
 import { useBoolean, useSetState } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
@@ -16,9 +13,8 @@ import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { USER_ROLES, getUsersEnriched } from 'src/_mock/_projasa';
+import { _customers } from 'src/_mock/_projasa';
 
-import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -36,38 +32,30 @@ import {
   TablePaginationCustom,
 } from 'src/components/table';
 
-import { UserTableRow } from '../user-table-row';
-import { UserTableToolbar } from '../user-table-toolbar';
-import { UserTableFiltersResult } from '../user-table-filters-result';
+import { CustomerTableRow } from '../customer-table-row';
+import { CustomerTableToolbar } from '../customer-table-toolbar';
+import { CustomerTableFiltersResult } from '../customer-table-filters-result';
 
 // ----------------------------------------------------------------------
-
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All' },
-  { value: 'active', label: 'Active' },
-  { value: 'banned', label: 'Inactive' },
-];
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Name' },
-  { id: 'phone', label: 'Phone number', width: 180 },
-  { id: 'company', label: 'Company', width: 220 },
-  { id: 'role_title', label: 'Role', width: 180 },
-  { id: 'status', label: 'Status', width: 100 },
-  { id: '', width: 88 },
+  { id: 'nama', label: 'Pelanggan' },
+  { id: 'telepon', label: 'Nomor Telepon', width: 180 },
+  { id: 'alamat', label: 'Alamat', width: 320 },
+  { id: '', width: 60 },
 ];
 
 // ----------------------------------------------------------------------
 
-export function UserListView() {
-  const table = useTable();
+export function CustomerListView() {
+  const table = useTable({ defaultOrderBy: 'nama' });
 
   const confirmDialog = useBoolean();
 
-  const [tableData, setTableData] = useState(getUsersEnriched());
+  const [tableData, setTableData] = useState(_customers);
 
-  const filters = useSetState({ name: '', role: [], status: 'all' });
-  const { state: currentFilters, setState: updateFilters } = filters;
+  const filters = useSetState({ name: '' });
+  const { state: currentFilters } = filters;
 
   const dataFiltered = applyFilter({
     inputData: tableData,
@@ -77,19 +65,15 @@ export function UserListView() {
 
   const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
 
-  const canReset =
-    !!currentFilters.name || currentFilters.role.length > 0 || currentFilters.status !== 'all';
+  const canReset = !!currentFilters.name;
 
   const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
 
   const handleDeleteRow = useCallback(
     (id) => {
       const deleteRow = tableData.filter((row) => row.id !== id);
-
       toast.success('Hapus berhasil!');
-
       setTableData(deleteRow);
-
       table.onUpdatePageDeleteRow(dataInPage.length);
     },
     [dataInPage.length, table, tableData]
@@ -97,21 +81,10 @@ export function UserListView() {
 
   const handleDeleteRows = useCallback(() => {
     const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
-
     toast.success('Hapus berhasil!');
-
     setTableData(deleteRows);
-
     table.onUpdatePageDeleteRows(dataInPage.length, dataFiltered.length);
   }, [dataFiltered.length, dataInPage.length, table, tableData]);
-
-  const handleFilterStatus = useCallback(
-    (event, newValue) => {
-      table.onResetPage();
-      updateFilters({ status: newValue });
-    },
-    [updateFilters, table]
-  );
 
   const renderConfirmDialog = () => (
     <ConfirmDialog
@@ -120,7 +93,7 @@ export function UserListView() {
       title="Hapus"
       content={
         <>
-          Apakah Anda yakin ingin menghapus <strong> {table.selected.length} </strong> pengguna?
+          Apakah Anda yakin ingin menghapus <strong>{table.selected.length}</strong> pelanggan?
         </>
       }
       action={
@@ -142,71 +115,30 @@ export function UserListView() {
     <>
       <DashboardContent>
         <CustomBreadcrumbs
-          heading="Pengguna Sistem"
+          heading="Data Pelanggan"
           links={[
             { name: 'Dashboard', href: paths.dashboard.root },
-            { name: 'User', href: paths.dashboard.users.root },
+            { name: 'Pelanggan', href: paths.dashboard.customers.root },
             { name: 'Daftar' },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.dashboard.users.new}
+              href={paths.dashboard.customers.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              Tambah Pengguna Baru
+              Tambah Pelanggan Baru
             </Button>
           }
           sx={{ mb: { xs: 3, md: 5 } }}
         />
 
         <Card>
-          <Tabs
-            value={currentFilters.status}
-            onChange={handleFilterStatus}
-            sx={[
-              (theme) => ({
-                px: 2.5,
-                boxShadow: `inset 0 -2px 0 0 ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
-              }),
-            ]}
-          >
-            {STATUS_OPTIONS.map((tab) => (
-              <Tab
-                key={tab.value}
-                iconPosition="end"
-                value={tab.value}
-                label={tab.label}
-                icon={
-                  <Label
-                    variant={
-                      ((tab.value === 'all' || tab.value === currentFilters.status) && 'filled') ||
-                      'soft'
-                    }
-                    color={
-                      (tab.value === 'active' && 'success') ||
-                      (tab.value === 'banned' && 'error') ||
-                      'default'
-                    }
-                  >
-                    {tab.value === 'all'
-                      ? tableData.length
-                      : tableData.filter((user) => user.status === tab.value).length}
-                  </Label>
-                }
-              />
-            ))}
-          </Tabs>
-
-          <UserTableToolbar
-            filters={filters}
-            onResetPage={table.onResetPage}
-            options={{ roles: USER_ROLES }}
-          />
+          <CustomerTableToolbar filters={filters} onResetPage={table.onResetPage} />
 
           {canReset && (
-            <UserTableFiltersResult
+            <CustomerTableFiltersResult
               filters={filters}
               totalResults={dataFiltered.length}
               onResetPage={table.onResetPage}
@@ -226,7 +158,7 @@ export function UserListView() {
                 )
               }
               action={
-                <Tooltip title="Delete">
+                <Tooltip title="Hapus">
                   <IconButton color="primary" onClick={confirmDialog.onTrue}>
                     <Iconify icon="solar:trash-bin-trash-bold" />
                   </IconButton>
@@ -235,7 +167,7 @@ export function UserListView() {
             />
 
             <Scrollbar>
-              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
+              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 800 }}>
                 <TableHeadCustom
                   order={table.order}
                   orderBy={table.orderBy}
@@ -258,13 +190,12 @@ export function UserListView() {
                       table.page * table.rowsPerPage + table.rowsPerPage
                     )
                     .map((row) => (
-                      <UserTableRow
+                      <CustomerTableRow
                         key={row.id}
                         row={row}
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
                         onDeleteRow={() => handleDeleteRow(row.id)}
-                        editHref={paths.dashboard.users.edit(row.id)}
                       />
                     ))}
 
@@ -299,7 +230,7 @@ export function UserListView() {
 // ----------------------------------------------------------------------
 
 function applyFilter({ inputData, comparator, filters }) {
-  const { name, status, role } = filters;
+  const { name } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index]);
 
@@ -312,21 +243,12 @@ function applyFilter({ inputData, comparator, filters }) {
   inputData = stabilizedThis.map((el) => el[0]);
 
   if (name) {
-    inputData = inputData.filter(
-      (user) => 
-        user.name.toLowerCase().includes(name.toLowerCase()) || 
-        user.email.toLowerCase().includes(name.toLowerCase())
+    inputData = inputData.filter((customer) =>
+      [customer.nama, customer.email, customer.telepon].some((field) =>
+        field?.toLowerCase().includes(name.toLowerCase())
+      )
     );
-  }
-
-  if (status !== 'all') {
-    inputData = inputData.filter((user) => user.status === status);
-  }
-
-  if (role.length) {
-    inputData = inputData.filter((user) => role.includes(user.role_title));
   }
 
   return inputData;
 }
-

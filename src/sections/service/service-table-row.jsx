@@ -1,33 +1,37 @@
 import { useBoolean, usePopover } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
-import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import ListItemText from '@mui/material/ListItemText';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { ROLE_COLORS } from 'src/_mock/_projasa';
+import { fCurrency } from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomPopover } from 'src/components/custom-popover';
 
+import { CATEGORY_COLORS, _companies } from 'src/_mock/_projasa';
+
 // ----------------------------------------------------------------------
 
-export function UserTableRow({ row, selected, editHref, onSelectRow, onDeleteRow }) {
+export function ServiceTableRow({ row, selected, onSelectRow, onDeleteRow }) {
   const menuActions = usePopover();
   const confirmDialog = useBoolean();
+
+  const editHref = paths.dashboard.services.edit(row.id);
+
+  const company = _companies.find((c) => c.id === row.company_id);
 
   const renderMenuActions = () => (
     <CustomPopover
@@ -62,8 +66,8 @@ export function UserTableRow({ row, selected, editHref, onSelectRow, onDeleteRow
     <ConfirmDialog
       open={confirmDialog.value}
       onClose={confirmDialog.onFalse}
-      title="Hapus"
-      content="Apakah Anda yakin ingin menghapus pengguna ini?"
+      title="Hapus Layanan"
+      content="Apakah Anda yakin ingin menghapus layanan ini?"
       action={
         <Button variant="contained" color="error" onClick={onDeleteRow}>
           Hapus
@@ -89,57 +93,49 @@ export function UserTableRow({ row, selected, editHref, onSelectRow, onDeleteRow
         </TableCell>
 
         <TableCell>
-          <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
-            <Avatar alt={row.name} src={row.avatarUrl} />
-
-            <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>
-              <Link
-                component={RouterLink}
-                href={editHref}
-                color="inherit"
-                sx={{ cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                {row.name}
-              </Link>
-              <Box component="span" sx={{ color: 'text.disabled' }}>
-                {row.email}
-              </Box>
-            </Stack>
-          </Box>
+          <ListItemText
+            primary={
+              <Typography component="span" variant="body2" fontWeight="bold">
+                {row.nama_layanan}
+              </Typography>
+            }
+            secondary={row.deskripsi}
+            slotProps={{
+              secondary: {
+                sx: {
+                  mt: 0.3,
+                  color: 'text.disabled',
+                  maxWidth: 320,
+                  overflow: 'hidden',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                },
+              },
+            }}
+          />
         </TableCell>
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.phone || '-'}</TableCell>
-
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.company || 'System'}</TableCell>
+        <TableCell>
+          <Label variant="soft" color={CATEGORY_COLORS[row.kategori] || 'default'}>
+            {row.kategori}
+          </Label>
+        </TableCell>
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
-          <Label variant="soft" color={ROLE_COLORS[row.role_title] || 'default'}>
-            {row.role_title}
-          </Label>
+          {company?.nama_perusahaan ?? '-'}
         </TableCell>
 
-        <TableCell>
-          <Label
-            variant="soft"
-            color={
-              (row.status === 'active' && 'success') ||
-              (row.status === 'banned' && 'error') ||
-              'default'
-            }
-          >
-            {row.status === 'active' ? 'Active' : 'Inactive'}
-          </Label>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.estimasi_durasi || '-'}</TableCell>
+
+        <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 'bold' }}>
+          {fCurrency(row.harga)}
         </TableCell>
 
-        <TableCell>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton
-              color={menuActions.open ? 'inherit' : 'default'}
-              onClick={menuActions.onOpen}
-            >
-              <Iconify icon="eva:more-vertical-fill" />
-            </IconButton>
-          </Box>
+        <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
+          <IconButton color={menuActions.open ? 'inherit' : 'default'} onClick={menuActions.onOpen}>
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
         </TableCell>
       </TableRow>
 

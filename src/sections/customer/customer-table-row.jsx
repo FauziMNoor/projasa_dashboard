@@ -5,29 +5,28 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
+import ListItemText from '@mui/material/ListItemText';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { ROLE_COLORS } from 'src/_mock/_projasa';
-
-import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomPopover } from 'src/components/custom-popover';
 
 // ----------------------------------------------------------------------
 
-export function UserTableRow({ row, selected, editHref, onSelectRow, onDeleteRow }) {
+export function CustomerTableRow({ row, selected, onSelectRow, onDeleteRow }) {
   const menuActions = usePopover();
   const confirmDialog = useBoolean();
+
+  const editHref = paths.dashboard.customers.edit(row.id);
 
   const renderMenuActions = () => (
     <CustomPopover
@@ -62,8 +61,8 @@ export function UserTableRow({ row, selected, editHref, onSelectRow, onDeleteRow
     <ConfirmDialog
       open={confirmDialog.value}
       onClose={confirmDialog.onFalse}
-      title="Hapus"
-      content="Apakah Anda yakin ingin menghapus pengguna ini?"
+      title="Hapus Pelanggan"
+      content="Apakah Anda yakin ingin menghapus data pelanggan ini?"
       action={
         <Button variant="contained" color="error" onClick={onDeleteRow}>
           Hapus
@@ -71,6 +70,11 @@ export function UserTableRow({ row, selected, editHref, onSelectRow, onDeleteRow
       }
     />
   );
+
+  // Generate avatar initials from name
+  const initials = row.nama
+    ? row.nama.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()
+    : '?';
 
   return (
     <>
@@ -90,7 +94,9 @@ export function UserTableRow({ row, selected, editHref, onSelectRow, onDeleteRow
 
         <TableCell>
           <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
-            <Avatar alt={row.name} src={row.avatarUrl} />
+            <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.lighter', color: 'primary.dark', fontWeight: 'bold', fontSize: 14 }}>
+              {initials}
+            </Avatar>
 
             <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>
               <Link
@@ -99,7 +105,7 @@ export function UserTableRow({ row, selected, editHref, onSelectRow, onDeleteRow
                 color="inherit"
                 sx={{ cursor: 'pointer', fontWeight: 'bold' }}
               >
-                {row.name}
+                {row.nama}
               </Link>
               <Box component="span" sx={{ color: 'text.disabled' }}>
                 {row.email}
@@ -108,38 +114,23 @@ export function UserTableRow({ row, selected, editHref, onSelectRow, onDeleteRow
           </Box>
         </TableCell>
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.phone || '-'}</TableCell>
-
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.company || 'System'}</TableCell>
-
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>
-          <Label variant="soft" color={ROLE_COLORS[row.role_title] || 'default'}>
-            {row.role_title}
-          </Label>
-        </TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.telepon || '-'}</TableCell>
 
         <TableCell>
-          <Label
-            variant="soft"
-            color={
-              (row.status === 'active' && 'success') ||
-              (row.status === 'banned' && 'error') ||
-              'default'
-            }
-          >
-            {row.status === 'active' ? 'Active' : 'Inactive'}
-          </Label>
+          <ListItemText
+            primary={row.alamat || '-'}
+            slotProps={{
+              primary: {
+                sx: { typography: 'body2', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+              },
+            }}
+          />
         </TableCell>
 
-        <TableCell>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton
-              color={menuActions.open ? 'inherit' : 'default'}
-              onClick={menuActions.onOpen}
-            >
-              <Iconify icon="eva:more-vertical-fill" />
-            </IconButton>
-          </Box>
+        <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
+          <IconButton color={menuActions.open ? 'inherit' : 'default'} onClick={menuActions.onOpen}>
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
         </TableCell>
       </TableRow>
 

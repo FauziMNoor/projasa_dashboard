@@ -89,7 +89,7 @@ export function UserNewEditForm({ currentUser }) {
       await new Promise((resolve) => setTimeout(resolve, 500));
       reset();
       toast.success(currentUser ? 'Update success!' : 'Create success!');
-      router.push(paths.dashboard.user.list);
+      router.push(paths.dashboard.users.list);
       console.info('DATA', data);
     } catch (error) {
       console.error(error);

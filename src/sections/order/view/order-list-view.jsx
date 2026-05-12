@@ -13,11 +13,17 @@ import TableBody from '@mui/material/TableBody';
 import IconButton from '@mui/material/IconButton';
 
 import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import { fIsAfter, fIsBetween } from 'src/utils/format-time';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { _orders, ORDER_STATUS_OPTIONS } from 'src/_mock';
+import {
+  getOrdersEnriched,
+  ORDER_STATUS_COLORS,
+  ORDER_STATUS_LABELS,
+  ORDER_STATUSES,
+} from 'src/_mock/_projasa';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
@@ -43,26 +49,26 @@ import { OrderTableFiltersResult } from '../order-table-filters-result';
 
 // ----------------------------------------------------------------------
 
-const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...ORDER_STATUS_OPTIONS];
+const STATUS_OPTIONS = [{ value: 'all', label: 'Semua' }, ...ORDER_STATUSES.map(s => ({ value: s, label: ORDER_STATUS_LABELS[s] }))];
 
 const TABLE_HEAD = [
-  { id: 'orderNumber', label: 'Order', width: 88 },
-  { id: 'name', label: 'Customer' },
-  { id: 'createdAt', label: 'Date', width: 140 },
-  { id: 'totalQuantity', label: 'Items', width: 120, align: 'center' },
-  { id: 'totalAmount', label: 'Price', width: 140 },
-  { id: 'status', label: 'Status', width: 110 },
+  { id: 'nomor_registrasi', label: 'No. Registrasi', width: 140 },
+  { id: 'customer', label: 'Pelanggan' },
+  { id: 'service', label: 'Layanan' },
+  { id: 'created_at', label: 'Tanggal Masuk', width: 160 },
+  { id: 'harga', label: 'Harga', width: 140 },
+  { id: 'status', label: 'Status', width: 120 },
   { id: '', width: 88 },
 ];
 
 // ----------------------------------------------------------------------
 
 export function OrderListView() {
-  const table = useTable({ defaultOrderBy: 'orderNumber' });
+  const table = useTable({ defaultOrderBy: 'created_at', defaultOrder: 'desc' });
 
   const confirmDialog = useBoolean();
 
-  const [tableData, setTableData] = useState(_orders);
+  const [tableData, setTableData] = useState(getOrdersEnriched());
 
   const filters = useSetState({
     name: '',
@@ -94,7 +100,7 @@ export function OrderListView() {
     (id) => {
       const deleteRow = tableData.filter((row) => row.id !== id);
 
-      toast.success('Delete success!');
+      toast.success('Hapus berhasil!');
 
       setTableData(deleteRow);
 
@@ -106,7 +112,7 @@ export function OrderListView() {
   const handleDeleteRows = useCallback(() => {
     const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
 
-    toast.success('Delete success!');
+    toast.success('Hapus berhasil!');
 
     setTableData(deleteRows);
 
@@ -125,10 +131,10 @@ export function OrderListView() {
     <ConfirmDialog
       open={confirmDialog.value}
       onClose={confirmDialog.onFalse}
-      title="Delete"
+      title="Hapus"
       content={
         <>
-          Are you sure want to delete <strong> {table.selected.length} </strong> items?
+          Apakah Anda yakin ingin menghapus <strong> {table.selected.length} </strong> pesanan?
         </>
       }
       action={
@@ -140,7 +146,7 @@ export function OrderListView() {
             confirmDialog.onFalse();
           }}
         >
-          Delete
+          Hapus
         </Button>
       }
     />
@@ -150,12 +156,22 @@ export function OrderListView() {
     <>
       <DashboardContent>
         <CustomBreadcrumbs
-          heading="List"
+          heading="Pesanan Masuk"
           links={[
             { name: 'Dashboard', href: paths.dashboard.root },
-            { name: 'Order', href: paths.dashboard.order.root },
-            { name: 'List' },
+            { name: 'Pesanan', href: paths.dashboard.orders.root },
+            { name: 'Daftar' },
           ]}
+          action={
+            <Button
+              component={RouterLink}
+              href={paths.dashboard.orders.new}
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+            >
+              Buat Pesanan Baru
+            </Button>
+          }
           sx={{ mb: { xs: 3, md: 5 } }}
         />
 
@@ -182,16 +198,11 @@ export function OrderListView() {
                       ((tab.value === 'all' || tab.value === currentFilters.status) && 'filled') ||
                       'soft'
                     }
-                    color={
-                      (tab.value === 'completed' && 'success') ||
-                      (tab.value === 'pending' && 'warning') ||
-                      (tab.value === 'cancelled' && 'error') ||
-                      'default'
-                    }
+                    color={ORDER_STATUS_COLORS[tab.value] || 'default'}
                   >
-                    {['completed', 'pending', 'cancelled', 'refunded'].includes(tab.value)
-                      ? tableData.filter((user) => user.status === tab.value).length
-                      : tableData.length}
+                    {tab.value === 'all' 
+                      ? tableData.length 
+                      : tableData.filter((order) => order.status === tab.value).length}
                   </Label>
                 }
               />
@@ -263,7 +274,6 @@ export function OrderListView() {
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
                         onDeleteRow={() => handleDeleteRow(row.id)}
-                        detailsHref={paths.dashboard.order.details(row.id)}
                       />
                     ))}
 
@@ -311,8 +321,8 @@ function applyFilter({ inputData, comparator, filters, dateError }) {
   inputData = stabilizedThis.map((el) => el[0]);
 
   if (name) {
-    inputData = inputData.filter(({ orderNumber, customer }) =>
-      [orderNumber, customer.name, customer.email].some((field) =>
+    inputData = inputData.filter((order) =>
+      [order.nomor_registrasi, order.customer?.nama, order.service?.nama_layanan].some((field) =>
         field?.toLowerCase().includes(name.toLowerCase())
       )
     );
@@ -324,7 +334,7 @@ function applyFilter({ inputData, comparator, filters, dateError }) {
 
   if (!dateError) {
     if (startDate && endDate) {
-      inputData = inputData.filter((order) => fIsBetween(order.createdAt, startDate, endDate));
+      inputData = inputData.filter((order) => fIsBetween(order.created_at, startDate, endDate));
     }
   }
 
